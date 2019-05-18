@@ -93,5 +93,7 @@
 #define LOG_INFO(...) printf(__VA_ARGS__)
 #define LOG_DBG_PY printf
 
+#define RF2XX_TX_POWER  PHY_POWER_m10dBm
+#define RF2XX_RX_RSSI_THRESHOLD  RF2XX_PHY_RX_THRESHOLD__m84dBm
 #define RPL_CONF_LEAF_ONLY 1
 #endif /* PROJECT_ROUTER_CONF_H_ */
