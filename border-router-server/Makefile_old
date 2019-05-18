@@ -1,0 +1,37 @@
+CONTIKI_PROJECT = udp-server
+all: $(CONTIKI_PROJECT)
+PROJECT_SOURCEFILES += ../utility-functions.c, slip-bridge.c
+
+
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
+#MODULES += os/services/rpl-border-router
+#MODULES += os/services/shell
+#MAKE_MAC = MAKE_MAC_TSCH
+
+APPS += orchestra
+MODULES += core/net/mac/tsch
+MODULES += core/net/ipv6/multicast
+
+#MODULES += os/services/orchestra
+#MODULES += os/net/ipv6/multicast
+#MAKE_ROUTING = MAKE_ROUTING_RPL_CLASSIC
+
+ifeq ($(PREFIX),)
+	PREFIX = fd00::1/64
+endif
+
+CONTIKI=../../..
+include $(CONTIKI)/Makefile.include
+
+CONTIKI_WITH_IPV6 = 1
+include $(CONTIKI)/Makefile.include
+
+$(CONTIKI)/tools/tunslip6:	$(CONTIKI)/tools/tunslip6.c
+		(cd $(CONTIKI)/tools && $(MAKE) tunslip6)
+
+connect-router:	$(CONTIKI)/tools/tunslip6
+		sudo $(CONTIKI)/tools/tunslip6 $(PREFIX)
+
+connect-router-cooja:	$(CONTIKI)/tools/tunslip6
+		sudo $(CONTIKI)/tools/tunslip6 -a 127.0.0.1 $(PREFIX)
+
