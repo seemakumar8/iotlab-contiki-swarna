@@ -26,6 +26,7 @@ void fill_child_entries()
      addr = rpl_get_parent_ipaddr(p);
 	 if(p->rank > instance->current_dag->rank) {
          child_node = memb_alloc(&nodememb);
+	 	 printf("Adding child %d\n", addr->u8[LINKADDR_SIZE-1]);
 		 child_node->child_id = addr->u8[LINKADDR_SIZE - 1];
 		 //child_node->child_id = addr->u8[15];
 		 child_node->received_pkt = 0;

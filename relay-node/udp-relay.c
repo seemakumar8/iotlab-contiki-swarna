@@ -307,7 +307,7 @@ void process_topology_req(struct response_pkt *resp, uint8_t child_id)
   child_set_pkt_received(child_id);
 
   checksum_children[cur_loc] = resp->pkt.topology.checksum;
-  cur_loc = cur_loc + 1;
+  cur_loc = cur_loc + 1; //received cound of child nodes
 
   LOG_DBG_PY("node_id:%d, child_id:%d, c_checksum:%x\n", get_my_id(), resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
 						 (unsigned int)resp->pkt.topology.checksum);
@@ -335,9 +335,11 @@ void process_topology_req(struct response_pkt *resp, uint8_t child_id)
   if(max_leaf_rank < resp->pkt.topology.max_leaf_rank)
 	max_leaf_rank = resp->pkt.topology.max_leaf_rank;
 
+  printf("child_count: %d, total children: %d\n", cur_loc, get_child_count());
   /*If packet received from all children, then forward request 
 	Do not hold the response forever. Timeout after a certain value */
-  if(is_all_child_set()){
+  if(cur_loc == get_child_count()){
+//  if(is_all_child_set()){
 	send_topology_resp();
   }/* else {
     ctimer_set(&periodic_timer, get_topology_timeout() * CLOCK_SECOND, send_topology_resp, NULL);
@@ -487,10 +489,9 @@ void network_settled()
 {
   //stop_parent_switch();
 
+  rpl_print_neighbor_list();
   init_child_list();
   print_child_list();
-
-  rpl_print_neighbor_list();
 
   if(is_leaf()){
   	if(join_mcast_group() == NULL) {
