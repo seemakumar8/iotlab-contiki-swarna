@@ -21,13 +21,13 @@ void fill_child_entries()
   rpl_instance_t *instance;
 
   instance = rpl_get_default_instance();
-
+  int i;
   for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
      addr = rpl_get_parent_ipaddr(p);
-	 if(p->rank > instance->current_dag->rank) {
+     if(p->rank > instance->current_dag->rank) {
          child_node = memb_alloc(&nodememb);
-	 	 printf("Adding child %d\n", addr->u8[LINKADDR_SIZE-1]);
-		 child_node->child_id = addr->u8[LINKADDR_SIZE - 1];
+	 	 printf("Adding child %x\n", get_id_from_addr(addr));//->u8[LINKADDR_SIZE-1]);
+		 child_node->child_id = get_id_from_addr(addr);//addr->u8[LINKADDR_SIZE - 1];
 		 //child_node->child_id = addr->u8[15];
 		 child_node->received_pkt = 0;
 
@@ -46,7 +46,7 @@ void init_child_list(void)
   fill_child_entries();
 }
 /*---------------------------------------------------------------------------*/
-uint8_t is_child_set(uint8_t child_id)
+uint8_t is_child_set(uint16_t child_id)
 {
    child_node_t *l;
 
@@ -79,7 +79,7 @@ uint8_t is_all_child_set()
    return 1; 
 }
 /*---------------------------------------------------------------------------*/
-uint8_t is_child(uint8_t child_id)
+uint8_t is_child(uint16_t child_id)
 {
    child_node_t *l;
    for(l = list_head(child_list); l != NULL; l = list_item_next(l)) {
@@ -90,7 +90,7 @@ uint8_t is_child(uint8_t child_id)
    return 0;
 }
 /*---------------------------------------------------------------------------*/
-uint8_t child_set_pkt_received(uint8_t child_id)
+uint8_t child_set_pkt_received(uint16_t child_id)
 {
    child_node_t *l;
    for(l = list_head(child_list); l != NULL; l = list_item_next(l)) {
@@ -113,6 +113,6 @@ print_child_list(void)
    child_node_t *l;
    printf("Child Info:\n");
    for(l = list_head(child_list); l != NULL; l = list_item_next(l)) {
-	 printf("child: %d, received_pkt: %d\n", l->child_id, l->received_pkt);
+	 printf("child: %x, received_pkt: %d\n", l->child_id, l->received_pkt);
    }
 }

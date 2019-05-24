@@ -49,7 +49,7 @@ static uint64_t checksum_children[MAX_CHILD], sec_checksum_children[MAX_CHILD];
 uint8_t max_index = 0, first_round_completed = 1;
 
 uint64_t my_checksum;
-uint8_t paths[MAX_PATH_NODES];
+uint16_t paths[MAX_PATH_NODES];
 static int cur_loc = 0, paths_loc = 0, first_child = 1;
 static struct ctimer periodic_timer, rpl_timer;
 static rpl_rank_t max_leaf_rank;
@@ -59,8 +59,8 @@ static rpl_rank_t max_leaf_rank;
 #error "Check the values of: NETSTACK_CONF_WITH_IPV6, UIP_CONF_ROUTER, UIP_CONF_IPV6_RPL"
 #endif
 
-void process_topology_req(struct response_pkt *resp, uint8_t child_id);
-void process_attestation_req(struct response_pkt *resp, uint8_t child_id);
+void process_topology_req(struct response_pkt *resp, uint16_t child_id);
+void process_attestation_req(struct response_pkt *resp, uint16_t child_id);
 /*---------------------------------------------------------------------------*/
 PROCESS(udp_relay_process, "UDP relay");
 AUTOSTART_PROCESSES(&udp_relay_process);
@@ -76,7 +76,7 @@ void reset_variable()
    paths_loc = 0;
    first_child = 1;
 //   memset(&checksum_children, 0, sizeof(uint64_t) * MAX_CHILD);
-   memset(&paths, 0, sizeof(uint8_t) * MAX_PATH_NODES);
+   memset(&paths, 0, sizeof(uint16_t) * MAX_PATH_NODES);
    rest_child_list();
 }
 /*---------------------------------------------------------------------------*/
@@ -150,9 +150,11 @@ checksum_receiver(struct simple_udp_connection *c,
   LOG_INFO("\n");
 */
   if(resp->pkt_type == TOPOLOGY)
-		process_topology_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
+		process_topology_req(resp, get_id_from_addr(sender_addr));
+		//process_topology_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
   else if(resp->pkt_type == ATTESTATION)
-		process_attestation_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
+		process_attestation_req(resp, get_id_from_addr(sender_addr));
+		//process_attestation_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
 }
 /*---------------------------------------------------------------------------*/
 void broadcast_to_parents()
@@ -250,7 +252,7 @@ void send_topology_resp()
 	 reset_variable();
 }
 /*---------------------------------------------------------------------------*/
-void process_attestation_req(struct response_pkt *resp, uint8_t child_id)
+void process_attestation_req(struct response_pkt *resp, uint16_t child_id)
 {
   checksum_children[cur_loc++] = resp->pkt.att.checksum;
 
@@ -294,7 +296,7 @@ int is_present_paths(int recv_id)
    return 0;
 }
 /*---------------------------------------------------------------------------*/
-void process_topology_req(struct response_pkt *resp, uint8_t child_id)
+void process_topology_req(struct response_pkt *resp, uint16_t child_id)
 {
 
   if(!is_child(child_id)) {
@@ -309,7 +311,8 @@ void process_topology_req(struct response_pkt *resp, uint8_t child_id)
   checksum_children[cur_loc] = resp->pkt.topology.checksum;
   cur_loc = cur_loc + 1; //received cound of child nodes
 
-  LOG_DBG_PY("node_id:%d, child_id:%d, c_checksum:%x\n", get_my_id(), resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
+  LOG_DBG_PY("I node_id:%x received from child_id:%x, %x, c_checksum:%x\n", get_my_id(), child_id,resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
+  //LOG_DBG_PY("I node_id:%x received from child_id:%x, c_checksum:%x\n", get_my_id(), resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
 						 (unsigned int)resp->pkt.topology.checksum);
 
   /* Copy paths from received pkt to local variable */
@@ -341,9 +344,9 @@ void process_topology_req(struct response_pkt *resp, uint8_t child_id)
   if(cur_loc == get_child_count()){
 //  if(is_all_child_set()){
 	send_topology_resp();
-  }/* else {
+  } else {
     ctimer_set(&periodic_timer, get_topology_timeout() * CLOCK_SECOND, send_topology_resp, NULL);
-  }*/
+  }
 
   /*
   if(first_child) {
@@ -363,7 +366,8 @@ tcpip_handler(void)
 
 	if(resp->pkt_type == TOPOLOGY){
 		send_pkt_count++;
-		process_topology_req(resp, UIP_IP_BUF->srcipaddr.u8[LINKADDR_SIZE - 1]);
+		//process_topology_req(resp, UIP_IP_BUF->srcipaddr.u8[LINKADDR_SIZE - 1]);
+		process_topology_req(resp, get_id_from_addr(&UIP_IP_BUF->srcipaddr));
 	}
 	else if(resp->pkt_type == ATTESTATION){
 		send_pkt_count++;
@@ -528,7 +532,7 @@ PROCESS_THREAD(udp_relay_process, ev, data)
   simple_udp_register(&secreq_conn, UNICAST_SECREQ_PORT, NULL,
                       UNICAST_SECREQ_PORT, udp_secreq_callback);
 
-  printf("My ID is: %d, %d\n", get_my_id(), (linkaddr_node_addr).u8[LINKADDR_SIZE - 1]);
+  printf("My ID is: %x\n", get_my_id());
   ctimer_set(&rpl_timer, STOP_PARENT_SWITCH * CLOCK_SECOND, network_settled, NULL);
   while(1){
     PROCESS_YIELD();

@@ -43,9 +43,6 @@
 #define ORCHESTRA_CONF_UNICAST_SENDER_BASED 1
 #define ORCHESTRA_CONF_RULES { &eb_per_time_source, &unicast_per_neighbor_rpl_storing, &default_common }
 
-
-
-
 #undef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE           1280
 

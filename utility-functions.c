@@ -5,6 +5,7 @@
 #include "sys/stimer.h"
 #include "sys/timer.h"
 #include "net/ipv6/uip-ds6.h"
+#include "iotlab_uid.h"
 
 #include <stdio.h>
 //#include "sys/cooja_mt.h"
@@ -27,8 +28,13 @@
 //static struct timer att_timer;
 //static int att_timer_expired = 1;
 /*---------------------------------------------------------------------------*/
-uint8_t get_my_id() {
-  return (uint8_t)(linkaddr_node_addr).u8[LINKADDR_SIZE - 1];
+uint16_t get_my_id() {
+      //	return (uint8_t)(linkaddr_node_addr).u8[LINKADDR_SIZE - 2];
+	return iotlab_uid();
+}
+/*---------------------------------------------------------------------------*/
+uint16_t get_id_from_addr(uip_ipaddr_t *uid) {
+    return (uid->u8[14] << 8) | uid->u8[15];
 }
 /*---------------------------------------------------------------------------*/
 /*void toggle_value()
@@ -106,8 +112,7 @@ void send_to_parents(struct response_pkt *packet, uint8_t is_client)
   	 addr = rpl_get_parent_ipaddr(p);
   	 //addr = rpl_parent_get_ipaddr(p);
 	 if(rpl_neighbor_is_parent(p, is_client)) {
-     	LOG_DBG_6ADDR(addr);
-     	LOG_DBG(",");
+     		printf("%x, ", get_id_from_addr(addr));
 
 		count += 1;
 	 	uip_udp_packet_sendto(parent_conn, packet, sizeof(struct response_pkt),
@@ -115,7 +120,7 @@ void send_to_parents(struct response_pkt *packet, uint8_t is_client)
 	 }
   }
 
-  LOG_DBG("\n");
+  printf("\n");
 }
 /*---------------------------------------------------------------------------*/
 uint8_t is_leaf()

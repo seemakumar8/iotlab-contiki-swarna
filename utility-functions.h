@@ -23,7 +23,7 @@
 #ifdef NUM_CONF_NODES
 #define NUM_NODES NUM_CONF_NODES
 #else
-#define NUM_NODES 15
+#define NUM_NODES 20
 #endif
 
 #ifdef CONF_MAX_CHILD
@@ -42,7 +42,7 @@
 #ifdef CONF_STOP_PARENT_SWITCH
 #define STOP_PARENT_SWITCH (CONF_STOP_PARENT_SWITCH * 60)
 #else
-#define STOP_PARENT_SWITCH (60 * 3)
+#define STOP_PARENT_SWITCH (60 * 10)
 #endif
 
 #ifdef CONF_FRAME_LENGTH
@@ -78,14 +78,14 @@ struct att_packet {
 
 struct topology_info {
     uint8_t pathindex;
-    uint8_t path[MAX_PATH_NODES];
-	rpl_rank_t max_leaf_rank;
+    uint16_t path[MAX_PATH_NODES];
+    rpl_rank_t max_leaf_rank;
     uint64_t checksum;
 }__attribute__((packed));
 
 struct sec_rnd_resp {
-	uint8_t max_index;
-	uint64_t checksum;
+    uint8_t max_index;
+    uint64_t checksum;
 //	uint64_t child_checksums[MAX_CHILD];
 }__attribute__((packed));
 
@@ -98,7 +98,8 @@ struct response_pkt {
 	} pkt;	
 }__attribute__((packed)); 
 
-uint8_t get_my_id();
+uint16_t get_my_id();
+uint16_t get_id_from_addr(uip_ipaddr_t *uid);
 int attest_memory(uint32_t nonce, uint64_t *checksum);
 void send_to_parents(struct response_pkt *packet, uint8_t is_client);
 //void create_broadcast_conn();
