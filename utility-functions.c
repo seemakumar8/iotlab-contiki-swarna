@@ -107,12 +107,12 @@ void send_to_parents(struct response_pkt *packet, uint8_t is_client)
     LOG_DBG("Failed to create socket to parent\n");
     return;
   }
-  LOG_DBG("Sending to parents: ");
+ // LOG_DBG("Sending to parents: ");
   for(p = nbr_table_head(rpl_parents); p != NULL; p = nbr_table_next(rpl_parents, p)) {
   	 addr = rpl_get_parent_ipaddr(p);
   	 //addr = rpl_parent_get_ipaddr(p);
 	 if(rpl_neighbor_is_parent(p, is_client)) {
-     		printf("%x, ", get_id_from_addr(addr));
+   //  		printf("%x, ", get_id_from_addr(addr));
 
 		count += 1;
 	 	uip_udp_packet_sendto(parent_conn, packet, sizeof(struct response_pkt),
@@ -120,7 +120,7 @@ void send_to_parents(struct response_pkt *packet, uint8_t is_client)
 	 }
   }
 
-  printf("\n");
+ // printf("\n");
 }
 /*---------------------------------------------------------------------------*/
 uint8_t is_leaf()

@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 #define PORT 12345
-#define SERVADDR "fd00::201:1:1:1"
+#define SERVADDR "fd00::c081"
 #define MAX_CHILD 15
 
 #define TOPOLOGY 30
@@ -20,6 +20,7 @@
 #define SECOND_TIME_STOP  70
 #define SECOND_TIME_DONE  45
 
+#define MAX_NODES 5
 typedef struct {
    uint8_t req_type;
    uint8_t size;
@@ -37,6 +38,11 @@ struct request_packet {
 	uint8_t run_count;
 }__attribute__((packed));
 
+struct node_id_addr_mapp {
+    uint8_t id;
+    char addr[INET6_ADDRSTRLEN];
+}__attribute__((packed));
+
 int sock;
 socklen_t clilen;
 struct sockaddr_in6 server_addr, client_addr;
@@ -48,7 +54,9 @@ char serv_addr[100];
 static FILE *fp;
 
 int start_sent = 0;
+static int num_nodes = 0;
 req_pkt local_rpkt;
+struct node_id_addr_mapp map[MAX_NODES]; 
 /*---------------------------------------------------------------------------*/
 void current_timestamp() {
     struct timeval te; 
@@ -60,37 +68,32 @@ void current_timestamp() {
 /*---------------------------------------------------------------------------*/
 int get_id_from_addr(char *a)
 {
-	char *token;
-	int id;
+	int i;
 
-	/*fd00::204:4:....*/
-	strtok(addrbuf, ": ");
-	strtok(NULL, ": ");
-	token = strtok(NULL, ": ");
-
-	id = (int)strtol(token, NULL, 16);
-	printf("id:%d\n", id);
-
-	return id;
+	for(i = 0; i < num_nodes; i++) {
+		if(strncmp(a, map[i].addr, 10) == 0) {
+			return map[i].id;
+		}
+	}
+	return 0;
 }
 /*---------------------------------------------------------------------------*/
 void get_addr_from_id(uint8_t id, char *a)
 {
-  char temp[20];
+	int i;
 
-  if(id <= 15)
-  	strcpy(a, "fd00::20");
-  else
-	strcpy(a, "fd00::2");
-
-  sprintf(temp, "%x:%x:%x:%x", id, id, id, id);
-  strcat(a, temp);
+	for(i = 0; i < num_nodes; i++) {
+		if(map[i].id == id) {
+  			strcpy(a, map[i].addr);
+		}
+	}
 }
 /*---------------------------------------------------------------------------*/
 void second_udp_send(struct request_packet *spkt, char* addr)
 {
   memset(&server_addr, 0, sizeof(server_addr));
 
+  addr[strcspn(addr, "\n")] = 0;
   server_addr.sin6_family = AF_INET6;
   inet_pton(AF_INET6, addr, &server_addr.sin6_addr);
   server_addr.sin6_port = htons(PORT);
@@ -234,9 +237,29 @@ int main(void)
     exit(1);
   }
 
-   strcpy(serv_addr, "fd00::201:1:1:1");
+   strcpy(serv_addr, "fd00::c081");
+ 
+  char *token;
+  char line[1000];
+  int map_loc = 0;
+  fp = fopen("node_id_addr.txt", "r");
+  if(fp == NULL) {
+	printf("Cannot open nodeid file\n");
+	fclose(fp);
+	exit(0);
+   }else {
+	 while(fgets(line, sizeof(line), fp) != NULL)
+   	 {
+             map[map_loc].id = atoi(strtok(line, " "));
+             strcpy(map[map_loc].addr, strtok(NULL, " "));
+   	     printf("map_loc: %d, nodeid: %d, addr: %s\n", map_loc, map[map_loc].id, map[map_loc].addr);
+	     num_nodes++;
+	     map_loc++;
+	 }
+	 fclose(fp);
+  }
 
-  fp = fopen("temp.txt", "r");	
+  fp = fopen("temp.txt", "r");
   if(fp == NULL) {
     memset(&rpkt, 0, sizeof(req_pkt));
 	printf("File open error\n");
@@ -276,17 +299,17 @@ int main(void)
 	  if(sec_client_count == recv_count){
    		spkt1.pkt_type = SECOND_TIME_STOP;
    		spkt1.run_count = run_no;
-	    second_udp_send(&spkt1, serv_addr);
+         	second_udp_send(&spkt1, serv_addr);
 
 		recv_count = 0;
 //		printf("Received resp from all nodes\n\n");
 		if(!read_line_send_req()) {
-			current_timestamp();
+			//current_timestamp();
 			printf("DONE\n");
 			fclose(fp);
 
    			spkt1.pkt_type = SECOND_TIME_DONE;
-		    second_udp_send(&spkt1, serv_addr);
+		        second_udp_send(&spkt1, serv_addr);
 
 			exit(0);
 		}

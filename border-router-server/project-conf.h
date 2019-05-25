@@ -87,6 +87,12 @@
 #undef TSCH_CONF_AUTOSTART
 #define TSCH_CONF_AUTOSTART 0
 
+#define RPL_MRHOF_CONF_SQUARED_ETX 1
+#undef RPL_CONF_OF
+//#define RPL_CONF_OF                    rpl_of0
+#define RPL_CONF_SUPPORTED_OFS {&rpl_of0, &rpl_mrhof}
+#define RPL_CONF_OF_OCP RPL_OCP_OF0
+#define RPL_OF0_CONF_SR RPL_OF0_FIXED_SR
 /*****************************************************************************************/
 /* MULTICAST */
 /*****************************************************************************************/
@@ -108,6 +114,6 @@
 #define LOG_INFO(...) printf(__VA_ARGS__)
 #define LOG_DBG_PY printf
 
-#define RF2XX_TX_POWER  PHY_POWER_m6dBm
+#define RF2XX_TX_POWER  PHY_POWER_m3dBm
 #define RF2XX_RX_RSSI_THRESHOLD  RF2XX_PHY_RX_THRESHOLD__m84dBm
 #endif /* PROJECT_ROUTER_CONF_H_ */

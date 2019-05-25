@@ -8,9 +8,9 @@
 /*****************************************************************************************/
 /* ATTESTATION */
 /*****************************************************************************************/
-#define NUM_CONF_NODES 15 //Also change tric in orchestra
+#define NUM_CONF_NODES 20 //Also change tric in orchestra
 #define CONF_FRAME_LENGTH 31 //Should be length of broadcast frame
-#define CONF_STOP_PARENT_SWITCH 5
+#define CONF_STOP_PARENT_SWITCH 15
 
 #define ATT_WITH_ORCHESTRA 0
 /*****************************************************************************************/

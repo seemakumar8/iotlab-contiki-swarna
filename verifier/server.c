@@ -8,7 +8,7 @@
 #include <string.h>
 
 #define PORT 12345
-#define SERVADDR "fd00::2354"
+#define SERVADDR "fd00::c081"
 
 #define TOPOLOGY 30
 #define ATTESTATION 40

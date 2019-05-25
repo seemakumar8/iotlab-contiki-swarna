@@ -127,7 +127,7 @@ uint8_t get_topology_timeout()
   */
 
   timeout = NUM_NODES - ((get_rank() / RPL_MIN_HOPRANKINC - 1) / 3);
-  LOG_DBG("NUM_NODES: %d, rank: %d, RPL_MIN_HOPRANKINC: %d\n", NUM_NODES, get_rank(), RPL_MIN_HOPRANKINC);
+  //LOG_DBG("NUM_NODES: %d, rank: %d, RPL_MIN_HOPRANKINC: %d\n", NUM_NODES, get_rank(), RPL_MIN_HOPRANKINC);
 
   return timeout;
 }
@@ -144,16 +144,18 @@ checksum_receiver(struct simple_udp_connection *c,
 {
   struct response_pkt *resp;
   resp = (struct response_pkt *)(data);
+  uip_ipaddr_t sender;
 
+  memcpy(&sender, sender_addr, sizeof(uip_ipaddr_t));
  /* LOG_INFO("Received broadcast response from: %d, ", LINKADDR_SIZE);
   LOG_INFO_6ADDR(sender_addr);
   LOG_INFO("\n");
 */
   if(resp->pkt_type == TOPOLOGY)
-		process_topology_req(resp, get_id_from_addr(sender_addr));
+		process_topology_req(resp, get_id_from_addr(&sender));
 		//process_topology_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
   else if(resp->pkt_type == ATTESTATION)
-		process_attestation_req(resp, get_id_from_addr(sender_addr));
+		process_attestation_req(resp, get_id_from_addr(&sender));
 		//process_attestation_req(resp, sender_addr->u8[LINKADDR_SIZE - 1]);
 }
 /*---------------------------------------------------------------------------*/
@@ -162,7 +164,7 @@ void broadcast_to_parents()
 {
   uip_ipaddr_t baddr;
 
- // LOG_INFO("Broadcasting to parents:\n");
+  LOG_INFO("Broadcasting to parents:\n");
   uip_create_linklocal_allnodes_mcast(&baddr);
   simple_udp_sendto(&broadcast_conn, &ctimer_resp, sizeof(struct response_pkt), &baddr);
 }
@@ -187,8 +189,8 @@ void send_attestation_resp()
 	 resp.pkt_type = (uint8_t)ATTESTATION;
 	 //resp.sender_rank = get_rank();
 	 resp.pkt.att.checksum = combined_checksum;
-
 #if BROADCAST_TO_PARENTS == 1
+	 printf("Broadcasting from send_attestation_resp\n");
 	 ctimer_resp = resp;
 //	 broadcast_to_parents();
 	 if(BINARY_TREE) {
@@ -225,7 +227,7 @@ void send_topology_resp()
   int i;
   for(i = 0; i < paths_loc; i++) {
 	resp.pkt.topology.path[i] = paths[i];
-	LOG_DBG("%d:", resp.pkt.topology.path[i]);
+	//LOG_DBG("%d:", resp.pkt.topology.path[i]);
   }
   LOG_DBG("path, combined checksum: %x\n", (unsigned int)combined_checksum);
 
@@ -237,13 +239,8 @@ void send_topology_resp()
    	resp.pkt.topology.pathindex = paths_loc + 1;
   }
 
-#if BROADCAST_TO_PARENTS == 1
 #if ATTESTATION_TIME_TEST == 1
      send_to_parents(&resp, 0);
-#else
-	 ctimer_resp = resp;
-	 broadcast_to_parents();
-#endif
 #else
      send_to_parents(&resp, 0);
 	 /* packetbuf_hdr = 10, frame_hdr = 14, 2 bytes, app = 1 bytes */
@@ -257,7 +254,7 @@ void process_attestation_req(struct response_pkt *resp, uint16_t child_id)
   checksum_children[cur_loc++] = resp->pkt.att.checksum;
 
   if(!is_child(child_id)) {
-	LOG_DBG("Topology resp packet from non-child node: %d\n", child_id);
+	//LOG_DBG("Topology resp packet from non-child node: %d\n", child_id);
 	return;
   }
 
@@ -311,7 +308,7 @@ void process_topology_req(struct response_pkt *resp, uint16_t child_id)
   checksum_children[cur_loc] = resp->pkt.topology.checksum;
   cur_loc = cur_loc + 1; //received cound of child nodes
 
-  LOG_DBG_PY("I node_id:%x received from child_id:%x, %x, c_checksum:%x\n", get_my_id(), child_id,resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
+  LOG_DBG_PY("node_id:%x, child_id:%x, c_checksum:%x\n", get_my_id(), child_id,
   //LOG_DBG_PY("I node_id:%x received from child_id:%x, c_checksum:%x\n", get_my_id(), resp->pkt.topology.path[resp->pkt.topology.pathindex-1],
 						 (unsigned int)resp->pkt.topology.checksum);
 
@@ -338,7 +335,7 @@ void process_topology_req(struct response_pkt *resp, uint16_t child_id)
   if(max_leaf_rank < resp->pkt.topology.max_leaf_rank)
 	max_leaf_rank = resp->pkt.topology.max_leaf_rank;
 
-  printf("child_count: %d, total children: %d\n", cur_loc, get_child_count());
+  //printf("child_count: %d, total children: %d\n", cur_loc, get_child_count());
   /*If packet received from all children, then forward request 
 	Do not hold the response forever. Timeout after a certain value */
   if(cur_loc == get_child_count()){
@@ -371,7 +368,7 @@ tcpip_handler(void)
 	}
 	else if(resp->pkt_type == ATTESTATION){
 		send_pkt_count++;
-		process_attestation_req(resp, UIP_IP_BUF->srcipaddr.u8[LINKADDR_SIZE - 1]);
+		process_attestation_req(resp, get_id_from_addr(&UIP_IP_BUF->srcipaddr));
 	}
 
   }
@@ -384,14 +381,12 @@ uint8_t create_response(struct request_packet *mpkt, struct response_pkt *resp)
     if(attest_memory(mpkt->seed, &checksum)){
 	    if(mpkt->pkt_type == TOPOLOGY){
 			resp->pkt_type = (uint8_t)TOPOLOGY;
-//			resp->sender_rank = get_rank();
 			resp->pkt.topology.path[0] = get_my_id();
 			resp->pkt.topology.pathindex = 1;
 			resp->pkt.topology.checksum = checksum;
 			resp->pkt.topology.max_leaf_rank = get_rank();
         }else if(mpkt->pkt_type == ATTESTATION){
 			resp->pkt_type = (uint8_t)ATTESTATION;
-//			resp->sender_rank = get_rank();
 			resp->pkt.att.checksum = checksum;
 		}
     } else {
@@ -423,6 +418,7 @@ udp_secreq_callback(struct simple_udp_connection *c,
          uint16_t datalen)
 {
     struct request_packet *secreq = (struct request_packet *)(data);
+    printf("received second round\n");
 
 	if(secreq->pkt_type == SECOND_ROUND)
     {
@@ -446,22 +442,18 @@ mcast_tcpip_handler(void)
     mpkt = (struct request_packet *)(uip_appdata);
 
     nonce = mpkt->seed;
-    LOG_DBG("Received multicast: [0x%08lx]\n", nonce);
+    LOG_DBG("Received multicast: [0x%08lx], pkt_type:%d\n", nonce, mpkt->pkt_type);
 
 	if(create_response(mpkt, &resp))
-#if BROADCAST_TO_PARENTS == 1
 #if ATTESTATION_TIME_TEST == 1
 	{
 	    if(mpkt->pkt_type == TOPOLOGY)
 			send_to_parents(&resp, 1);
-		else
+		else if(mpkt->pkt_type == ATTESTATION) {
 	 		ctimer_resp = resp;
 			broadcast_to_parents();
+		}
 	}
-#else
-	 	ctimer_resp = resp;
-		broadcast_to_parents();
-#endif
 #else
 		send_to_parents(&resp, 0);
 #endif
@@ -491,7 +483,7 @@ join_mcast_group(void)
 /*---------------------------------------------------------------------------*/
 void network_settled()
 {
-  //stop_parent_switch();
+  stop_parent_switch();
 
   rpl_print_neighbor_list();
   init_child_list();

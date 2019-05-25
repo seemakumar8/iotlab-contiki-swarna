@@ -42,7 +42,7 @@
 #ifdef CONF_STOP_PARENT_SWITCH
 #define STOP_PARENT_SWITCH (CONF_STOP_PARENT_SWITCH * 60)
 #else
-#define STOP_PARENT_SWITCH (60 * 10)
+#define STOP_PARENT_SWITCH (60 * 3)
 #endif
 
 #ifdef CONF_FRAME_LENGTH
@@ -61,11 +61,11 @@
 
 /*If set, in phase 1 the nodes will broadcast the aggregated resp to parents
 if 0, then the resp is sent as unicast packets to each parent node */
-#define BROADCAST_TO_PARENTS 0 
+#define BROADCAST_TO_PARENTS 1 
 /* In topology phase unicast, in att phase broadcast */
-#define ATTESTATION_TIME_TEST 0
+#define ATTESTATION_TIME_TEST 1
 
-#define BINARY_TREE 1
+#define BINARY_TREE 0
 
 struct request_packet {
     uint8_t pkt_type;

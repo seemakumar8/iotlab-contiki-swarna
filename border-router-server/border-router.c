@@ -397,10 +397,8 @@ udp_checksum_callback(struct simple_udp_connection *c,
 		LOG_DBG_PY("\n");
 	} else if(resp->pkt_type == ATTESTATION){
 		cnt++;
-		LOG_DBG_PY("Received checksum: %x, from\n", (unsigned int)resp->pkt.att.checksum);
+		LOG_DBG_PY("Received checksum: %x, from %x\n", (unsigned int)resp->pkt.att.checksum, get_id_from_addr(sender_addr));
 		printf("Received %d\n", cnt);
-		LOG_DBG_6ADDR(sender_addr);
-		LOG_DBG_PY("\n");
 	}
 }
 /*---------------------------------------------------------------------------*/
@@ -421,7 +419,6 @@ tcpip_handler()
 {
 	req_pkt *rpkt = (req_pkt *)(uip_appdata);
 	LOG_DBG_PY("Received request %d from verifier\n", rpkt->req_type);
-	printf("Received req\n");
 
 	cnt = 0;
 	switch(rpkt->req_type){
