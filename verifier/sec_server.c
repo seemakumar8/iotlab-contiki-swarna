@@ -10,7 +10,7 @@
 #include <inttypes.h>
 
 #define PORT 12345
-#define SERVADDR "fd00::c081"
+#define SERVADDR "fd00::a469"
 #define MAX_CHILD 15
 
 #define TOPOLOGY 30
@@ -237,7 +237,7 @@ int main(void)
     exit(1);
   }
 
-   strcpy(serv_addr, "fd00::c081");
+   strcpy(serv_addr, "fd00::a469");
  
   char *token;
   char line[1000];
@@ -250,8 +250,8 @@ int main(void)
    }else {
 	 while(fgets(line, sizeof(line), fp) != NULL)
    	 {
-             map[map_loc].id = atoi(strtok(line, " "));
-             strcpy(map[map_loc].addr, strtok(NULL, " "));
+             map[map_loc].id = atoi(strtok(line, "\t"));
+             strcpy(map[map_loc].addr, strtok(NULL, "\t"));
    	     printf("map_loc: %d, nodeid: %d, addr: %s\n", map_loc, map[map_loc].id, map[map_loc].addr);
 	     num_nodes++;
 	     map_loc++;

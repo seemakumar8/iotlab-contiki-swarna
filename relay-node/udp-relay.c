@@ -203,7 +203,7 @@ void send_attestation_resp()
 #else
      send_to_parents(&resp, 0);
 	 /* packetbuf_hdr = 10, frame_hdr = 14, 2 bytes, app = 9 bytes */
-    LOG_DBG_PY("comm_overhead: 35\n"); 
+     LOG_DBG_PY("comm_overhead: 35\n"); 
 #endif
 
 	 reset_variable();
@@ -244,8 +244,8 @@ void send_topology_resp()
 #else
      send_to_parents(&resp, 0);
 	 /* packetbuf_hdr = 10, frame_hdr = 14, 2 bytes, app = 1 bytes */
-     LOG_DBG_PY("comm_overhead: 35\n"); 
 #endif
+     	LOG_DBG_PY("comm_overhead: 35\n"); 
 	 reset_variable();
 }
 /*---------------------------------------------------------------------------*/
@@ -447,8 +447,10 @@ mcast_tcpip_handler(void)
 	if(create_response(mpkt, &resp))
 #if ATTESTATION_TIME_TEST == 1
 	{
-	    if(mpkt->pkt_type == TOPOLOGY)
+	    if(mpkt->pkt_type == TOPOLOGY) {
 			send_to_parents(&resp, 1);
+    			LOG_DBG_PY("comm_overhead: 35\n"); 
+		}
 		else if(mpkt->pkt_type == ATTESTATION) {
 	 		ctimer_resp = resp;
 			broadcast_to_parents();
@@ -483,7 +485,7 @@ join_mcast_group(void)
 /*---------------------------------------------------------------------------*/
 void network_settled()
 {
-  stop_parent_switch();
+  //stop_parent_switch(); //COmment this line if not requirded to stop parent switch
 
   rpl_print_neighbor_list();
   init_child_list();

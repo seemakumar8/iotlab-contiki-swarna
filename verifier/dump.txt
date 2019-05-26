@@ -1,0 +1,64 @@
+m3-109.grenoble.iot-lab.info	1062		default	Success	
+
+
+
+
+
+
+m3-112.grenoble.iot-lab.info	a578		default	Success	
+
+
+
+
+
+
+m3-113.grenoble.iot-lab.info	a671		default	Success	
+
+
+
+
+
+
+m3-116.grenoble.iot-lab.info	8969		default	Success	
+
+
+
+
+
+
+m3-117.grenoble.iot-lab.info	2262		default	Success	
+
+
+
+
+
+
+m3-120.grenoble.iot-lab.info	a469		default	Success	
+
+
+
+
+
+
+m3-121.grenoble.iot-lab.info	8572		default	Success	
+
+
+
+
+
+
+m3-124.grenoble.iot-lab.info	9772		default	Success	
+
+
+
+
+
+
+m3-125.grenoble.iot-lab.info	9672		default	Success	
+
+
+
+
+
+
+m3-128.grenoble.iot-lab.info	9980

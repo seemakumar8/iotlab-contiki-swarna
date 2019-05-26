@@ -109,19 +109,14 @@ udp_checksum_callback(struct simple_udp_connection *c,
 		int i;
 
 		for(i = 0; i <  resp->pkt.topology.pathindex; i++) {
-			LOG_DBG_PY("%d,", resp->pkt.topology.path[i]);
+			LOG_DBG_PY("%x,", resp->pkt.topology.path[i]);
 		}
 		LOG_DBG_PY("\n");
 
-		LOG_DBG_PY("Received checksum: %x, from ", (unsigned int)resp->pkt.topology.checksum);
-		LOG_DBG_6ADDR(sender_addr);
-		LOG_DBG_PY("\n");
-		printf("Received\n");
+		LOG_DBG_PY("Received checksum: %x from %x\n", (unsigned int)resp->pkt.topology.checksum, get_id_from_addr(sender_addr));
 	} else if(resp->pkt_type == ATTESTATION){
 		cnt++;
-		LOG_DBG_PY("Received checksum: %x, from\n", (unsigned int)resp->pkt.att.checksum);
-		printf("Received %d\n", cnt);
-		LOG_DBG_6ADDR(sender_addr);
+		LOG_DBG_PY("Received checksum: %x, from %x\n", (unsigned int)resp->pkt.att.checksum, get_id_from_addr(sender_addr));
 		LOG_DBG_PY("\n");
 	}
 }
@@ -144,8 +139,6 @@ tcpip_handler()
 	//  uint8_t *req_type = (uint8_t *)(uip_appdata);
 	req_pkt *rpkt = (req_pkt *)(uip_appdata);
 	LOG_DBG_PY("Received request %d from verifier\n", rpkt->req_type);
-	printf("Received req\n");
-
 	cnt = 0;
 	switch(rpkt->req_type){
 		case TOPOLOGY:
